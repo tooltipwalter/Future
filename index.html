@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Voorbereiding Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8f7 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #d946a6;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #9d4edd;
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        .love-btn {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            border: 2px solid #ff1493;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(255, 20, 147, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .love-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(255, 20, 147, 0.4);
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+        }
+
+        .love-btn:active {
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 4px 8px rgba(255, 20, 147, 0.2);
+        }
+
+        .heart {
+            position: fixed;
+            top: -50px;
+            font-size: 2rem;
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        @keyframes fallHearts {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .heart.falling {
+            animation: fallHearts 3s ease-in forwards;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(217, 70, 166, 0.1);
+            text-align: center;
+            border-top: 4px solid #d946a6;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #d946a6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .progress-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(217, 70, 166, 0.1);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #f0e6ff;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d946a6, #c239b3);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: right;
+        }
+
+        .sections-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(217, 70, 166, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #f3e8f7, #ede9fe);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-left: 5px solid #d946a6;
+        }
+
+        .section-header h2 {
+            flex: 1;
+            font-size: 1.3rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .section-count {
+            font-size: 0.9rem;
+            color: #666;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .items-list {
+            padding: 0;
+        }
+
+        .item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f3e8f7;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item:hover {
+            background: #faf5ff;
+        }
+
+        .item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: #d946a6;
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .item.checked .item-title {
+            color: #ccc;
+            text-decoration: line-through;
+        }
+
+        .item.checked .item-desc {
+            color: #ddd;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #fecaca;
+        }
+
+        .add-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(217, 70, 166, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .add-section h3 {
+            color: #d946a6;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e9d5ff;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #d946a6;
+            box-shadow: 0 0 0 3px rgba(217, 70, 166, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #d946a6, #c239b3);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(217, 70, 166, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: #f3e8f7;
+            color: #d946a6;
+        }
+
+        .btn-secondary:hover {
+            background: #ede9fe;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .section-header {
+                flex-wrap: wrap;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👶🏽 Baby Voorbereiding</h1>
+            <p class="subtitle">Je persoonlijke voorbereiding checklist</p>
+            <button class="love-btn" onclick="dropHearts()">💕 Klik hier voor een beetje liefde</button>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalItems">0</div>
+                <div class="stat-label">Totale taken</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedItems">0</div>
+                <div class="stat-label">Afgerond</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="remainingItems">0</div>
+                <div class="stat-label">Nog te doen</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="percentComplete">0%</div>
+                <div class="stat-label">Voortgang</div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progressText">0 / 0 afgerond</div>
+        </div>
+
+        <div class="add-section">
+            <h3>➕ Nieuwe categorie toevoegen</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="categoryName">Categorienaam</label>
+                    <input type="text" id="categoryName" placeholder="bijv. Verzorging">
+                </div>
+                <div class="form-group">
+                    <label for="categoryEmoji">Emoji (optioneel)</label>
+                    <input type="text" id="categoryEmoji" placeholder="bijv. 🏥" maxlength="5">
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button onclick="addNewCategory()">+ Categorie toevoegen</button>
+            </div>
+        </div>
+
+        <div class="add-section">
+            <h3>✨ Nieuw item toevoegen</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="itemTitle">Taak</label>
+                    <input type="text" id="itemTitle" placeholder="bijv. Wieg kopen">
+                </div>
+                <div class="form-group">
+                    <label for="itemCategory">Categorie</label>
+                    <select id="itemCategory">
+                        <option value="Baby">👶 Baby</option>
+                        <option value="Baby kamer">🛏️ Baby kamer</option>
+                        <option value="Opvang">👨‍👩‍👧 Opvang</option>
+                        <option value="Kraamzorg">🏥 Kraamzorg</option>
+                        <option value="Overal in house" selected>🏠 Overal in house</option>
+                        <option value="Tuin">🌱 Tuin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="itemDesc">Beschrijving (optioneel)</label>
+                <textarea id="itemDesc" placeholder="Voeg details toe..."></textarea>
+            </div>
+            <div class="action-buttons">
+                <button onclick="addNewItem()">+ Item toevoegen</button>
+                <button class="btn-secondary" onclick="downloadAsJSON()">⬇️ Backup</button>
+                <button class="btn-secondary" onclick="resetAll()">↻ Reset alles</button>
+            </div>
+        </div>
+
+        <div class="sections-container" id="sectionsContainer"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'babyChecklist';
+
+        const defaultData = {
+            items: [
+                { id: 1, title: 'Kleren', desc: 'Rompers, bodysuits, maat 0-3m en 3-6m', category: 'Baby', priority: 1, completed: false },
+                { id: 2, title: 'Autostoel', desc: 'Goedgekeurd model, goed geïnstalleerd', category: 'Baby', priority: 1, completed: false },
+                { id: 3, title: 'Kinderwagen', desc: 'Met regenhoes en accessories', category: 'Baby', priority: 1, completed: false },
+                { id: 4, title: 'Baby tas', desc: 'Voor onderweg (luiers, spullen)', category: 'Baby', priority: 1, completed: false },
+                { id: 5, title: 'Kleur kiezen', desc: '', category: 'Baby kamer', priority: 2, completed: false },
+                { id: 6, title: 'Schilderen', desc: '', category: 'Baby kamer', priority: 2, completed: false },
+                { id: 7, title: 'Behangen', desc: '', category: 'Baby kamer', priority: 2, completed: false },
+                { id: 8, title: 'Kinderopvang bijschrijven', desc: 'Inschrijven bij crèche of au pair', category: 'Opvang', priority: 1, completed: false },
+                { id: 9, title: 'Nadenken over welke dagen etc', desc: '', category: 'Opvang', priority: 2, completed: false },
+                { id: 10, title: 'Kraamzorg zoeken', desc: '', category: 'Kraamzorg', priority: 1, completed: false },
+                { id: 11, title: 'Keuken kast opmeten en maken', desc: '', category: 'Overal in house', priority: 3, completed: false },
+                { id: 12, title: 'Keuken kasten opnieuw inruimen', desc: '', category: 'Overal in house', priority: 3, completed: false },
+                { id: 13, title: 'Trap verfen', desc: '', category: 'Overal in house', priority: 3, completed: false },
+                { id: 14, title: 'Hal verfen', desc: '', category: 'Overal in house', priority: 3, completed: false },
+                { id: 15, title: 'Plinten', desc: '', category: 'Overal in house', priority: 3, completed: false },
+                { id: 16, title: 'Tegels uitbreiden', desc: 'Voor zomer', category: 'Tuin', priority: 4, completed: false }
+            ]
+        };
+
+        let data = loadData();
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : defaultData;
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            renderUI();
+        }
+
+        function renderUI() {
+            renderSections();
+            updateStats();
+        }
+
+        function renderSections() {
+            const container = document.getElementById('sectionsContainer');
+            container.innerHTML = '';
+
+            const categories = [...new Set(data.items.map(item => item.category))].sort();
+            const categoryEmojis = {
+                'Baby': '👶',
+                'Baby kamer': '🛏️',
+                'Opvang': '👨‍👩‍👧',
+                'Kraamzorg': '🏥',
+                'Overal in house': '🏠',
+                'Tuin': '🌱'
+            };
+
+            categories.forEach(category => {
+                const itemsForCategory = data.items.filter(item => item.category === category);
+                if (itemsForCategory.length === 0) return;
+
+                const completed = itemsForCategory.filter(item => item.completed).length;
+                const emoji = categoryEmojis[category] || '📋';
+
+                const html = `
+                    <div class="section">
+                        <div class="section-header">
+                            <h2>${emoji} ${category}</h2>
+                            <span class="section-count">${completed}/${itemsForCategory.length}</span>
+                        </div>
+                        <div class="items-list">
+                            ${itemsForCategory.map(item => `
+                                <div class="item ${item.completed ? 'checked' : ''}">
+                                    <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleItem(${item.id})">
+                                    <div class="item-content">
+                                        <div class="item-title">${escapeHtml(item.title)}</div>
+                                        ${item.desc ? `<div class="item-desc">${escapeHtml(item.desc)}</div>` : ''}
+                                    </div>
+                                    <button class="delete-btn" onclick="deleteItem(${item.id})">✕</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        function updateStats() {
+            const total = data.items.length;
+            const completed = data.items.filter(item => item.completed).length;
+            const remaining = total - completed;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('completedItems').textContent = completed;
+            document.getElementById('remainingItems').textContent = remaining;
+            document.getElementById('percentComplete').textContent = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `${completed} / ${total} afgerond`;
+        }
+
+        function toggleItem(id) {
+            const item = data.items.find(i => i.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                saveData();
+            }
+        }
+
+        function deleteItem(id) {
+            data.items = data.items.filter(item => item.id !== id);
+            saveData();
+        }
+
+        function dropHearts() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.textContent = '❤️';
+                    heart.className = 'heart falling';
+                    heart.style.left = (Math.random() * 100) + '%';
+                    document.body.appendChild(heart);
+                    
+                    setTimeout(() => {
+                        heart.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        function addNewCategory() {
+            const categoryName = document.getElementById('categoryName').value.trim();
+            const categoryEmoji = document.getElementById('categoryEmoji').value.trim() || '📋';
+
+            if (!categoryName) {
+                alert('Voer een categorienaam in');
+                return;
+            }
+
+            const select = document.getElementById('itemCategory');
+            const option = document.createElement('option');
+            option.value = categoryName;
+            option.textContent = categoryEmoji + ' ' + categoryName;
+            select.appendChild(option);
+
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryEmoji').value = '';
+
+            alert('Categorie "' + categoryName + '" toegevoegd!');
+        }
+
+        function addNewItem() {
+            const title = document.getElementById('itemTitle').value.trim();
+            const category = document.getElementById('itemCategory').value;
+            const desc = document.getElementById('itemDesc').value.trim();
+
+            if (!title) {
+                alert('Voer een taak in');
+                return;
+            }
+
+            const newId = Math.max(...data.items.map(i => i.id), 0) + 1;
+            data.items.push({
+                id: newId,
+                title: title,
+                desc: desc,
+                category: category,
+                priority: 2,
+                completed: false
+            });
+
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('itemCategory').value = 'Overal in house';
+
+            saveData();
+        }
+
+        function downloadAsJSON() {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `baby-checklist-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function resetAll() {
+            if (confirm('Weet je zeker dat je alles wilt resetten?')) {
+                data = JSON.parse(JSON.stringify(defaultData));
+                saveData();
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        renderUI();
+    </script>
+</body>
+</html>
