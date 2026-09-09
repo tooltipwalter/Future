@@ -458,8 +458,9 @@
             <h3>🔗 Synchronisatie</h3>
             <div class="sync-buttons">
                 <button onclick="generateSyncLink()" style="background: linear-gradient(135deg, #10b981, #059669);">🔗 Maak sync link</button>
-                <input type="text" id="syncInput" class="sync-input" placeholder="Of plak hier een sync link...">
-                <button onclick="loadFromSyncLink()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📲 Sync via link</button>
+                <input type="text" id="syncInput" class="sync-input" placeholder="Of plak hier een sync link..." readonly>
+                <button onclick="copySyncLink()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">📋 Copy</button>
+                <button onclick="loadFromSyncLink()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">📲 Sync</button>
             </div>
             <div class="success-msg" id="syncMsg"></div>
         </div>
@@ -645,32 +646,68 @@
 
         function generateSyncLink() {
             const encoded = btoa(JSON.stringify(data));
-            const link = window.location.href.split('?')[0] + '?sync=' + encoded;
+            let baseUrl = window.location.href.split('?')[0];
+            
+            // Ensure no trailing slash issues
+            if (!baseUrl.endsWith('/')) {
+                baseUrl += '/';
+            }
+            
+            const link = baseUrl + '?sync=' + encoded;
             document.getElementById('syncInput').value = link;
-            showSyncMsg('✅ Link gegenereerd! Copy en stuur naar jezelf.');
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(link).then(() => {
+                showSyncMsg('✅ Link gegenereerd EN gekopieerd! Stuur naar jezelf.');
+            }).catch(() => {
+                showSyncMsg('✅ Link gegenereerd! (Copy handmatig)');
+            });
         }
 
         function loadFromSyncLink() {
             const link = document.getElementById('syncInput').value.trim();
             if (!link) {
-                showSyncMsg('❌ Plak eerst een link in');
+                showSyncMsg('❌ Plak eerst een link in of maak een nieuwe');
                 return;
             }
 
             try {
-                const encoded = new URL(link).searchParams.get('sync');
+                // Try to parse as URL
+                const url = new URL(link);
+                const encoded = url.searchParams.get('sync');
+                
                 if (!encoded) {
-                    showSyncMsg('❌ Ongeldige link');
+                    showSyncMsg('❌ Link bevat geen sync data');
                     return;
                 }
                 
                 const decoded = JSON.parse(atob(encoded));
+                if (!decoded.items || !Array.isArray(decoded.items)) {
+                    showSyncMsg('❌ Ongeldige data in link');
+                    return;
+                }
+                
                 data = decoded;
                 saveData();
-                showSyncMsg('✅ Gesynchroniseerd! Je data is bijgewerkt.');
+                document.getElementById('syncInput').value = '';
+                showSyncMsg('✅ Gesynchroniseerd! Data bijgewerkt van ' + decoded.items.length + ' items');
             } catch (e) {
-                showSyncMsg('❌ Fout bij laden van link');
+                console.error('Sync error:', e);
+                showSyncMsg('❌ Kan link niet lezen. Check of hij compleet is.');
             }
+        }
+
+        function copySyncLink() {
+            const link = document.getElementById('syncInput').value;
+            if (!link) {
+                showSyncMsg('❌ Maak eerst een sync link');
+                return;
+            }
+            navigator.clipboard.writeText(link).then(() => {
+                showSyncMsg('✅ Link gekopieerd naar clipboard!');
+            }).catch(() => {
+                showSyncMsg('❌ Kon niet kopieren (probeer handmatig)');
+            });
         }
 
         function showSyncMsg(msg) {
